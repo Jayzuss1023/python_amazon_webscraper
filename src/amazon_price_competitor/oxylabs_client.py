@@ -53,6 +53,7 @@ def normalize_product(content):
         "product_overview": content.get("product_overview", [])
     }
 
+# Scrape the searched product from Amazon
 def scraped_product_details(asin, geo_location, domain):
     payload = {
         "source": "amazon_product",
@@ -66,6 +67,7 @@ def scraped_product_details(asin, geo_location, domain):
     print(raw)
     content = extract_content(raw)
     normalized = normalize_product(content)
+    print("NORMALIZED PRODUCT------------", normalized)
     
     if not normalized.get("asin"):
         normalized["asin"] = asin
