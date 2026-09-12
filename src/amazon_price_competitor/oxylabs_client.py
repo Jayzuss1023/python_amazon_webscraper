@@ -9,7 +9,7 @@ load_dotenv()
 
 OXYLABS_BASE_URL = "https://realtime.oxylabs.io/v1/queries"
 
-
+# Post to OXYLABS which will return our Amazon search result
 def post_query(payload):
     username = os.getenv("OXYLABS_USERNAME")
     password = os.getenv("OXYLABS_PASSWORD")
@@ -53,6 +53,33 @@ def normalize_product(content):
         "product_overview": content.get("product_overview", [])
     }
 
+# Amazon product names are usually long.
+# This is just a quick method to return a shorter name
+def clean_product_name(title):
+    if "-" in title:
+        title = title.split("-")[0]
+    if "|" in title:
+        title = title.split("|")[0]
+    return title.strip()
+
+# Pull extra related results from search
+def extract_search_results(content):
+    items = []
+    if not isinstance(content, dict):
+        return items
+    
+    if "results" in content:
+        results = content["results"]
+        if isinstance(results, dict):
+            if "organic" in results:
+                items.extend(results["organic"])
+            if "paid" in results:
+                items.extend(results["paid"])
+    elif "products" in content and isinstance(content["products", list]):
+        items.extend(content["products"])
+        
+    return items
+
 # Scrape the searched product from Amazon
 def scraped_product_details(asin, geo_location, domain):
     payload = {
@@ -64,13 +91,29 @@ def scraped_product_details(asin, geo_location, domain):
     }
 
     raw = post_query(payload)
-    print(raw)
     content = extract_content(raw)
     normalized = normalize_product(content)
-    print("NORMALIZED PRODUCT------------", normalized)
     
     if not normalized.get("asin"):
         normalized["asin"] = asin
     normalized["geo_location"] = geo_location
     normalized["domain"] = domain
+    
     return normalized
+
+
+# Retrieving only the necessary information needed from the searched item
+def normalize_search_result(item):
+    asin = item.get("asin") or item.get("product_asin")
+    title = item.get("title")
+
+    if not (title or asin):
+        return None
+    
+    return {
+        "asin": asin,
+        "title": title,
+        "category": item.get("category"),
+        "price": item.get("price"),
+        "rating": item.get("rating")
+    }

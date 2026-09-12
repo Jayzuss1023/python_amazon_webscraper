@@ -1,6 +1,8 @@
 import streamlit as st
 
+from amazon_price_competitor.db import Database
 from amazon_price_competitor.oxylabs_client import scraped_product_details
+from amazon_price_competitor.services import scrape_and_store_product
 
 def render_header():
     st.title("Amazon Competitor Analysis")
@@ -21,7 +23,7 @@ def render_product_card(product):
         # Creating 2 columns for UI
         cols = st.columns([1,2])
 
-        # Try to load images to first column if any
+        # Try: Get images and load into image block within first column if any
         try:
             images = product.get("images", [])
             if images and len(images) > 0:
@@ -57,9 +59,15 @@ def main():
 
     if st.button("Scrape Product") and asin:
         with st.spinner("Scraping product..."):
-            product = scraped_product_details(asin, geo, domain)
+            scrape_and_store_product(asin, geo, domain)
         st.success("Product scraped successfully!")
-        render_product_card(product)
+
+    db = Database()
+    products = db.get_all_products()
+    print("PRODUCTS", products)
+    print("HELLO WORLD")
+    if products:
+        st.divider()
 
 if __name__ == "__main__":
     main()
