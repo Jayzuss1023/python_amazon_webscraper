@@ -12,15 +12,24 @@ class Database:
         
 
     def insert_product(self, product_data):
-        product_data["created_at"] = datetime.now().isoformat()
-        return self.products.insert(product_data)
+        if "asin" in product_data:
+            asin = product_data["asin"]
+            product = self.get_product(asin)
+            # Prevent duplication
+            if not product:
+                product_data["created_at"] = datetime.now().isoformat()
+                return self.products.insert(product_data)
+            else: 
+                return {"msg": "The product exist in the db"}
     
     def get_product(self, asin):
         Product = Query()
-        self.products.get(Product.asin == asin)
+        return self.products.get(Product.asin == asin)
+
 
     def get_all_products(self):
-        self.products.all()
+        products = self.products.all()
+        return products
 
     def search_product(self, search_criteria):
         Product = Query()

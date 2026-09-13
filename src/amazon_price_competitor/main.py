@@ -64,10 +64,32 @@ def main():
 
     db = Database()
     products = db.get_all_products()
-    print("PRODUCTS", products)
-    print("HELLO WORLD")
+
+
     if products:
         st.divider()
+        st.subheader("Product Scraped")
+
+        items_per_page = 10
+        total_pages = (len(products) + items_per_page - 1) // items_per_page
+        col1, col2, col3 = st.columns([2, 3, 2])
+
+        # UI - Page navigation bar.
+        with col2:
+            # Initial page (Pg 1). Subtract 1 
+            page = st.number_input("Page", min_value=1, max_value=total_pages, value=1) -1
+        
+        start_idx = page * items_per_page
+        end_idx = min(start_idx + items_per_page, len(products))
+
+        st.write(f"Showing {start_idx + 1} - {end_idx} of {len(products)} products")
+
+        for p in products[start_idx:end_idx]:
+            render_product_card(p)
+        selected_asin = st.session_state.get("analyzing_asin")
+        print(selected_asin)
+        if selected_asin:
+            st.divider()
 
 if __name__ == "__main__":
     main()

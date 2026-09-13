@@ -6,8 +6,8 @@ from .oxylabs_client import scraped_product_details
 # return to render onto the UI
 def scrape_and_store_product(asin, geo, domain):
     data = scraped_product_details(asin, geo, domain)
-    print("DATA", data)
     db = Database()
     db.insert_product(data)
+
 
     return data
