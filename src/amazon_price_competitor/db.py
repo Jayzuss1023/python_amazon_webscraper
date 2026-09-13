@@ -31,10 +31,11 @@ class Database:
         products = self.products.all()
         return products
 
-    def search_product(self, search_criteria):
+    def search_products(self, search_criteria):
+
         Product = Query()
         query = None
-        for key, value in search_criteria:
+        for key, value in search_criteria.items():
             if  query is None:
                 query = (Product[key] == value)
             else:

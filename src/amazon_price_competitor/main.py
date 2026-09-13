@@ -2,7 +2,7 @@ import streamlit as st
 
 from amazon_price_competitor.db import Database
 from amazon_price_competitor.oxylabs_client import scraped_product_details
-from amazon_price_competitor.services import scrape_and_store_product
+from amazon_price_competitor.services import scrape_and_store_product, fetch_and_store_competitors
 
 def render_header():
     st.title("Amazon Competitor Analysis")
@@ -87,9 +87,19 @@ def main():
         for p in products[start_idx:end_idx]:
             render_product_card(p)
         selected_asin = st.session_state.get("analyzing_asin")
-        print(selected_asin)
+
         if selected_asin:
             st.divider()
+            st.subheader(f"Competitor analysis for {selected_asin}")
+            
+            db = Database()
+            existing_comps = db.search_products({"parent_asin": selected_asin})
+
+            if not existing_comps:
+                with st.spinner("Searching..."):
+                    comps = fetch_and_store_competitors(selected_asin, domain, geo)
+
+
 
 if __name__ == "__main__":
     main()

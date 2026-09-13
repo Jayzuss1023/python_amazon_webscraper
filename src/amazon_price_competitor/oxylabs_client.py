@@ -117,3 +117,48 @@ def normalize_search_result(item):
         "price": item.get("price"),
         "rating": item.get("rating")
     }
+
+
+
+def search_competitors(query_title, domain, categories, pages=1, geo_location=""):
+
+    st.write("🔎 Searching for competitors")
+
+    search_title = clean_product_name(query_title)
+    results = []
+    seen_asins = set()
+
+    strategies = ["featured", "price_asc", "price_desc", "avg_ratings"]
+
+    # Create the payload and post to  OXYLABS to generate a search
+    for sort_by in strategies:
+        for page in range(1, max(1, pages) + 1):
+            payload = {
+                "source": "amazon_search",
+                "query": search_title,
+                "parse": True,
+                "domain": domain,
+                "page": page,
+                "sory_by": sort_by,
+                "geo_location": geo_location
+            }
+
+            if categories and categories[0]:
+                payload["refinements"] = {"category": categories[0]}
+            
+            content = extract_content(post_query(payload))
+            # Return "organic" and "paid" results only
+            items = extract_search_results(content)
+
+            for item in items:
+                # Reduce/restructure - Pull data and return needed data only
+                result = normalize_search_result(item)
+                if result and result["asin"] not in seen_asins:
+                    seen_asins.add(result["asin"])
+                    results.append(result)
+            
+            time.sleep(0.1)
+            
+    st.write(f"✅ Found {len(results)} competitors")
+    return results
+
