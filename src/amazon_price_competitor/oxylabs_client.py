@@ -1,6 +1,7 @@
 import json
 import os
 import time
+from typing import Any
 import requests
 import streamlit as st
 from dotenv import load_dotenv
@@ -121,7 +122,6 @@ def normalize_search_result(item):
 
 
 def search_competitors(query_title, domain, categories, pages=1, geo_location=""):
-
     st.write("🔎 Searching for competitors")
 
     search_title = clean_product_name(query_title)
@@ -158,7 +158,36 @@ def search_competitors(query_title, domain, categories, pages=1, geo_location=""
                     results.append(result)
             
             time.sleep(0.1)
-            
+
     st.write(f"✅ Found {len(results)} competitors")
     return results
 
+def scrape_multiple_products(asins, geo_location, domain):
+    st.write("🔎 Scraping details")
+    products = []
+
+    progress_text = st.empty()
+    progress_bar = st.progress(0)
+    total = len(asins)
+
+    for idx, a in enumerate[Any](asins, 1):
+        try:
+            progress_text.write(f"Processing competitor {idx}/{total}: {a}")
+            progress_bar.progress(idx / total)
+
+            product = scraped_product_details(a, geo_location, domain)
+            products.append(product)
+            progress_text.write(f"✅ Found: {product.get('title', a)}")
+
+        except Exception as e:
+            progress_text.write(f"❌ Failed")
+        # Prevent overspamming OXYLABS server
+        time.sleep(0.1)
+
+    progress_text.empty()
+    progress_bar.empty()
+
+    st.write(f"✅ Successfully scraped {len(products)} out of {total} competitors")
+    return products
+
+    

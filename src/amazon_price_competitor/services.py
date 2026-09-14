@@ -1,6 +1,6 @@
 import streamlit as st
 from .db import Database
-from .oxylabs_client import scraped_product_details, search_competitors
+from .oxylabs_client import scrape_multiple_products, scraped_product_details, search_competitors
 
 # scrape and store the product into the DB
 # return to render onto the UI
@@ -37,6 +37,7 @@ def fetch_and_store_competitors(parent_asin, domain, geo_location, pages=2):
     ))
 
     all_results = []
+    # Search for related categories from OXYLAB by passing in said category
     for category in search_categories[:3]:
         search_results = search_competitors(
             query_title=parent["title"],
@@ -53,4 +54,6 @@ def fetch_and_store_competitors(parent_asin, domain, geo_location, pages=2):
         r.get("asin") for r in all_results
         if r.get("asin") and r.get("asin") != parent_asin and r.get("title")
     ))
+
+    scrape_multiple_products(competitor_asins[:20], geo_location, domain)
 
