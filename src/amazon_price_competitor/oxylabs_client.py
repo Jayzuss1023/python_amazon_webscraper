@@ -121,25 +121,40 @@ def normalize_search_result(item):
 
 
 
-def search_competitors(query_title, domain, categories, pages=1, geo_location=""):
+def search_competitors(
+    query_title,
+    domain,
+    categories,
+    pages=1,
+    geo_location="",
+    max_results=None,
+    exclude_asins=None,
+):
     st.write("🔎 Searching for competitors")
 
     search_title = clean_product_name(query_title)
     results = []
-    seen_asins = set()
+    seen_asins = set(exclude_asins or [])
 
-    strategies = ["featured", "price_asc", "price_desc", "avg_ratings"]
+    # Fewer sort strategies — extra sorts mostly rediscover the same ASINs
+    strategies = ["featured", "price_asc"]
 
-    # Create the payload and post to  OXYLABS to generate a search
+    # Create the payload and post to OXYLABS to generate a search
     for sort_by in strategies:
+        if max_results is not None and len(results) >= max_results:
+            break
+
         for page in range(1, max(1, pages) + 1):
+            if max_results is not None and len(results) >= max_results:
+                break
+
             payload = {
                 "source": "amazon_search",
                 "query": search_title,
                 "parse": True,
                 "domain": domain,
                 "page": page,
-                "sory_by": sort_by,
+                "sort_by": sort_by,
                 "geo_location": geo_location
             }
 
@@ -156,6 +171,8 @@ def search_competitors(query_title, domain, categories, pages=1, geo_location=""
                 if result and result["asin"] not in seen_asins:
                     seen_asins.add(result["asin"])
                     results.append(result)
+                    if max_results is not None and len(results) >= max_results:
+                        break
             
             time.sleep(0.1)
 
@@ -180,7 +197,8 @@ def scrape_multiple_products(asins, geo_location, domain):
             progress_text.write(f"✅ Found: {product.get('title', a)}")
 
         except Exception as e:
-            progress_text.write(f"❌ Failed")
+            progress_text.write(f"❌ Failed to scrape{a}")
+            continue
         # Prevent overspamming OXYLABS server
         time.sleep(0.1)
 

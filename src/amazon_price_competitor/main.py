@@ -79,7 +79,7 @@ def main():
             # Initial page (Pg 1). Subtract 1 
             page = st.number_input("Page", min_value=1, max_value=total_pages, value=1) -1
         
-        start_idx = page * items_per_page
+        start_idx = page * items_per_page 
         end_idx = min(start_idx + items_per_page, len(products))
 
         st.write(f"Showing {start_idx + 1} - {end_idx} of {len(products)} products")
@@ -97,7 +97,21 @@ def main():
 
             if not existing_comps:
                 with st.spinner("Searching..."):
+                    # Pull rel
                     comps = fetch_and_store_competitors(selected_asin, domain, geo)
+
+                st.success(f"Found {len(comps)} competitors!")
+
+            else:
+                st.info(f"Found {len(existing_comps)} existing competitors in the database.")
+            
+            cols1, col2 = st.columns([3, 1])
+            with col2:
+                if st.button("Refresh Competitors"):
+                    with st.spinner("Refreshing..."):
+                        comps = fetch_and_store_competitors(selected_asin, domain, geo)
+                    st.success(f"Found {len(comps)} competitors!")
+            
 
 
 
