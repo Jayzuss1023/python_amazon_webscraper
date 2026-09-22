@@ -1,8 +1,8 @@
 import streamlit as st
-
 from amazon_price_competitor.db import Database
-from amazon_price_competitor.oxylabs_client import scraped_product_details
+from amazon_price_competitor.llm import analyze_competitors
 from amazon_price_competitor.services import scrape_and_store_product, fetch_and_store_competitors
+
 
 def render_header():
     st.title("Amazon Competitor Analysis")
@@ -111,6 +111,12 @@ def main():
                     with st.spinner("Refreshing..."):
                         comps = fetch_and_store_competitors(selected_asin, domain, geo)
                     st.success(f"Found {len(comps)} competitors!")
+
+            with cols1:
+                if st.button("Analyze with LLLM", type="primary"):
+                    with st.spinner("Running LLM..."):
+                        analysis = analyze_competitors(selected_asin)
+                        st.markdown(analysis)
             
 
 
